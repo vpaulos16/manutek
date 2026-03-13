@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { 
     TrendingUp, 
@@ -8,9 +7,9 @@ import {
     CheckCircle, 
     Download, 
     BarChart3,
-    PieChart as PieChartIcon,
-    ArrowRight
+    PieChart as PieChartIcon
 } from 'lucide-react';
+import type { WorkOrder, Technician } from '../types';
 import { 
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, AreaChart, Area
@@ -19,7 +18,6 @@ import { format, subDays, startOfMonth, endOfMonth, isWithinInterval, parseISO, 
 import { ptBR } from 'date-fns/locale';
 
 const Finance: React.FC = () => {
-    const navigate = useNavigate();
     const { workOrders, technicians, customers, products } = useStore();
     const [periodFilter, setPeriodFilter] = useState<'7d' | '30d' | 'current_month' | 'year'>('30d');
     const [activeTab, setActiveTab] = useState<'billing' | 'ready' | 'services' | 'parts' | 'performance'>('billing');
@@ -330,7 +328,7 @@ const ReportReady = ({ workOrders, customers, products, formatCurrency }: any) =
                     </tr>
                 </thead>
                 <tbody>
-                    {readyItems.map(wo => {
+                    {readyItems.map((wo: WorkOrder) => {
                         const customer = customers.find((c: any) => c.id === wo.customerId);
                         const product = products.find((p: any) => p.id === wo.productId);
                         const days = wo.readyForPickupDate ? differenceInDays(new Date(), parseISO(wo.readyForPickupDate)) : 0;
@@ -419,18 +417,18 @@ const ReportParts = ({ workOrders, formatCurrency }: any) => {
 };
 
 const ReportPerformance = ({ workOrders, technicians, formatCurrency }: any) => {
-    const performance = technicians.map(tech => {
-        const finished = workOrders.filter(wo => wo.technicianId === tech.id && wo.status === 'delivered');
-        const totalValue = finished.reduce((acc, wo) => acc + (wo.totalCost || 0), 0);
+    const performance = technicians.map((tech: Technician) => {
+        const finished = workOrders.filter((wo: WorkOrder) => wo.technicianId === tech.id && wo.status === 'delivered');
+        const totalValue = finished.reduce((acc: number, wo: WorkOrder) => acc + (wo.totalCost || 0), 0);
         return { name: tech.name, count: finished.length, value: totalValue };
-    }).sort((a, b) => b.count - a.count);
+    }).sort((a: any, b: any) => b.count - a.count);
 
     return (
         <div className="table-container shadow-none">
             <table className="table">
                 <thead><tr style={{ backgroundColor: '#f1f5f9' }}><th>Técnico</th><th>OS Entregues</th><th>Valor Gerado</th><th>Média</th></tr></thead>
                 <tbody>
-                    {performance.map(row => (
+                    {performance.map((row: any) => (
                         <tr key={row.name}>
                             <td style={{ fontWeight: 700 }}>{row.name}</td>
                             <td style={{ fontWeight: 600 }}>{row.count}</td>
