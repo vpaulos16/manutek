@@ -70,6 +70,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/dist-server ./dist-server
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
