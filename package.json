@@ -10,6 +10,7 @@
     "build:server": "nest build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "node dist-server/main.js",
     "start:server": "node dist-server/main"
   },
   "dependencies": {
