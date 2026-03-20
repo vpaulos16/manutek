@@ -616,7 +616,6 @@ supabase.channel('custom-all-channel')
         { event: 'INSERT', schema: 'public', table: 'communication_logs' },
         (payload) => {
             console.log('New message received!', payload);
-            const newMsg = payload.new;
             // Otimização: Só adiciona se não for duplicado e se for inbound (bot salvou)
             // Na verdade, fetch data é mais seguro para sincronizar tudo
             useStore.getState().fetchData(); 

@@ -6,6 +6,8 @@
     "outDir": "./dist/server",
     "rootDir": "./src",
     "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
