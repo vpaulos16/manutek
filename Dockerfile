@@ -63,6 +63,7 @@ RUN apt-get update && apt-get install -y \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
     libasound2 \
+    libgbm1 \
     fonts-liberation \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*

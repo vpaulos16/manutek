@@ -12,6 +12,7 @@ import {
     MessageCircle,
     UserCheck
 } from 'lucide-react';
+import WhatsappStatus from '../WhatsappStatus';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -53,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
             </nav>
 
             <div className="sidebar-footer">
+                <WhatsappStatus />
                 <NavLink
                     to="/configuracoes"
                     className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
