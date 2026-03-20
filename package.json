@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "nest start --watch",
-    "build": "tsc -b && vite build --outDir dist/client",
+    "build": "tsc -b && vite build",
     "build:server": "nest build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start:server": "node dist/server/main"
+    "start:server": "node dist-server/main"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
