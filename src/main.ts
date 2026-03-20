@@ -6,6 +6,9 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
   
+  // Habilitar CORS para permitir que o frontend na Vercel se comunique com o bot
+  app.enableCors();
+  
   const port = process.env.PORT || 3000;
   await app.listen(port);
   
