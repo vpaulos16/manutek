@@ -4,7 +4,7 @@ import type {
     BillingSettings, BillingTemplate, Technician, OSStatus
 } from '../types';
 import { supabase } from './supabase';
-import { sendWhatsAppMessage } from './evolution';
+import { sendWhatsAppMessage } from './whatsapp';
 
 interface AppState {
     customers: Customer[];
@@ -20,7 +20,9 @@ interface AppState {
     // Actions
     fetchData: () => Promise<void>;
     addCustomer: (customer: Customer) => Promise<void>;
+    updateCustomer: (id: string, updates: Partial<Customer>) => Promise<void>;
     addProduct: (product: Product) => Promise<void>;
+    updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
     addWorkOrder: (wo: WorkOrder) => Promise<void>;
     updateWorkOrderStatus: (id: string, status: WorkOrder['status']) => Promise<void>;
     updateWorkOrder: (id: string, updates: Partial<WorkOrder>) => Promise<void>;
@@ -37,11 +39,9 @@ interface AppState {
     isOSModalOpen: boolean;
     setOSModalOpen: (isOpen: boolean) => void;
 
-    // Settings
-    evolutionApiUrl: string;
-    evolutionInstanceName: string;
-    evolutionApiKey: string;
-    setEvolutionApiConfig: (url: string, instanceName: string, key: string) => void;
+    // WhatsApp Bot Settings
+    whatsappBotUrl: string;
+    setWhatsappBotConfig: (url: string) => void;
 
     // Billing Automation
     billingSettings: BillingSettings;
@@ -79,13 +79,14 @@ export const useStore = create<AppState>()((set, get) => ({
     fetchData: async () => {
         set({ isLoading: true, error: null });
         try {
-            const [customersRes, productsRes, workOrdersRes, techsRes, partsRes, historyRes] = await Promise.all([
+            const [customersRes, productsRes, workOrdersRes, techsRes, partsRes, historyRes, commsRes] = await Promise.all([
                 supabase.from('customers').select('*'),
                 supabase.from('products').select('*'),
                 supabase.from('work_orders').select('*'),
                 supabase.from('technicians').select('*'),
                 supabase.from('parts').select('*'),
-                supabase.from('work_order_history').select('*')
+                supabase.from('work_order_history').select('*'),
+                supabase.from('communication_logs').select('*').order('timestamp', { ascending: true })
             ]);
 
             if (customersRes.error) throw customersRes.error;
@@ -104,7 +105,7 @@ export const useStore = create<AppState>()((set, get) => ({
                 reportedDefect: wo.reported_defect,
                 serviceDescription: wo.service_description,
                 technicalDiagnostic: wo.technical_diagnostic,
-                items: [],
+                items: wo.items || [],
                 laborCost: parseFloat(wo.labor_cost) || 0,
                 totalCost: parseFloat(wo.total_cost) || 0,
                 isUnderWarranty: wo.is_under_warranty,
@@ -123,6 +124,10 @@ export const useStore = create<AppState>()((set, get) => ({
                     id: h.id,
                     status: h.status as OSStatus,
                     timestamp: h.timestamp,
+                    type: h.type || 'status',
+                    fieldName: h.field_name,
+                    oldValue: h.old_value,
+                    newValue: h.new_value,
                     note: h.note
                 }))
             }));
@@ -141,6 +146,16 @@ export const useStore = create<AppState>()((set, get) => ({
                 technicians: techsRes.data || [],
                 workOrders: parsedWorkOrders,
                 parts: partsRes.data || [],
+                communications: (commsRes.data || []).map(c => ({
+                    id: c.id,
+                    workOrderId: c.work_order_id,
+                    customerPhone: c.customer_phone,
+                    message: c.message,
+                    status: c.status,
+                    direction: c.direction,
+                    type: c.type,
+                    timestamp: c.timestamp
+                })),
                 isLoading: false
             });
         } catch (error: any) {
@@ -165,6 +180,22 @@ export const useStore = create<AppState>()((set, get) => ({
         }
         set((state) => ({ customers: [...state.customers, customer] }));
     },
+    updateCustomer: async (id, updates) => {
+        const { error } = await supabase.from('customers').update({
+            name: updates.name,
+            phone: updates.phone,
+            whatsapp: updates.whatsapp,
+            document: updates.document,
+            address: updates.address
+        }).eq('id', id);
+        if (error) {
+            console.error('Erro ao atualizar cliente:', error);
+            throw error;
+        }
+        set((state) => ({
+            customers: state.customers.map(c => c.id === id ? { ...c, ...updates } : c)
+        }));
+    },
     addProduct: async (product) => {
         const { error } = await supabase.from('products').insert([{
             id: product.id,
@@ -182,6 +213,23 @@ export const useStore = create<AppState>()((set, get) => ({
             throw error;
         }
         set((state) => ({ products: [...state.products, product] }));
+    },
+    updateProduct: async (id, updates) => {
+        const { error } = await supabase.from('products').update({
+            brand: updates.brand,
+            model: updates.model,
+            serial_number: updates.serialNumber,
+            category: updates.category,
+            color: updates.color,
+            voltage: updates.voltage
+        }).eq('id', id);
+        if (error) {
+            console.error('Erro ao atualizar produto:', error);
+            throw error;
+        }
+        set((state) => ({
+            products: state.products.map(p => p.id === id ? { ...p, ...updates } : p)
+        }));
     },
     addWorkOrder: async (wo) => {
         const { history, items, ...woData } = wo;
@@ -205,6 +253,7 @@ export const useStore = create<AppState>()((set, get) => ({
             attendant_id: woData.attendantId,
             attendant_name: woData.attendantName,
             entry_images: woData.entryImages,
+            items: items || [],
             created_at: woData.createdAt,
             updated_at: woData.updatedAt
         };
@@ -309,11 +358,29 @@ export const useStore = create<AppState>()((set, get) => ({
             }
         });
 
+        const mappedUpdates: any = { updated_at: now };
+        if (updates.status !== undefined) mappedUpdates.status = updates.status;
+        if (updates.reportedDefect !== undefined) mappedUpdates.reported_defect = updates.reportedDefect;
+        if (updates.technicalDiagnostic !== undefined) mappedUpdates.technical_diagnostic = updates.technicalDiagnostic;
+        if (updates.laborCost !== undefined) mappedUpdates.labor_cost = updates.laborCost;
+        if (updates.totalCost !== undefined) mappedUpdates.total_cost = updates.totalCost;
+        if (updates.isUnderWarranty !== undefined) mappedUpdates.is_under_warranty = updates.isUnderWarranty;
+        if (updates.hasInvoice !== undefined) mappedUpdates.has_invoice = updates.hasInvoice;
+        if (updates.readyForPickupDate !== undefined) mappedUpdates.ready_for_pickup_date = updates.readyForPickupDate;
+        if (updates.billingStatus !== undefined) mappedUpdates.billing_status = updates.billingStatus;
+        if (updates.totalStorageFee !== undefined) mappedUpdates.total_storage_fee = updates.totalStorageFee;
+        if (updates.lastNotificationSent !== undefined) mappedUpdates.last_notification_sent = updates.lastNotificationSent;
+        if (updates.lastFeeCalculationDate !== undefined) mappedUpdates.last_fee_calculation_date = updates.lastFeeCalculationDate;
+        if (updates.items !== undefined) mappedUpdates.items = updates.items;
+
         const { error } = await supabase.from('work_orders')
-            .update({ ...updates, updated_at: now })
+            .update(mappedUpdates)
             .eq('id', id);
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase update work_orders failed:', error);
+            throw error;
+        }
 
         if (historyEntries.length > 0) {
             await supabase.from('work_order_history').insert(historyEntries);
@@ -411,7 +478,7 @@ export const useStore = create<AppState>()((set, get) => ({
         set((state) => ({ communications: [...state.communications, completeLog] }));
 
         if (completeLog.direction === 'outbound') {
-            await sendWhatsAppMessage(log.customerPhone, log.message);
+            sendWhatsAppMessage(log.customerPhone, log.message);
         }
     },
     receiveWhatsAppMessage: (phone, message) => {
@@ -445,14 +512,10 @@ export const useStore = create<AppState>()((set, get) => ({
     },
     isOSModalOpen: false,
     setOSModalOpen: (isOpen) => set({ isOSModalOpen: isOpen }),
-    evolutionApiUrl: localStorage.getItem('evo_api_url') || '',
-    evolutionInstanceName: localStorage.getItem('evo_instance_name') || '',
-    evolutionApiKey: localStorage.getItem('evo_api_key') || '',
-    setEvolutionApiConfig: (url, instanceName, key) => {
-        localStorage.setItem('evo_api_url', url);
-        localStorage.setItem('evo_instance_name', instanceName);
-        localStorage.setItem('evo_api_key', key);
-        set({ evolutionApiUrl: url, evolutionInstanceName: instanceName, evolutionApiKey: key });
+    whatsappBotUrl: localStorage.getItem('whatsapp_bot_url') || 'http://localhost:3000',
+    setWhatsappBotConfig: (url) => {
+        localStorage.setItem('whatsapp_bot_url', url);
+        set({ whatsappBotUrl: url });
     },
 
     billingSettings: (() => {
@@ -546,9 +609,17 @@ supabase.channel('custom-all-channel')
     .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'work_orders' },
+        () => useStore.getState().fetchData()
+    )
+    .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'communication_logs' },
         (payload) => {
-            console.log('Change received!', payload);
-            useStore.getState().fetchData();
+            console.log('New message received!', payload);
+            const newMsg = payload.new;
+            // Otimização: Só adiciona se não for duplicado e se for inbound (bot salvou)
+            // Na verdade, fetch data é mais seguro para sincronizar tudo
+            useStore.getState().fetchData(); 
         }
     )
     .subscribe();

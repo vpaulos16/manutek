@@ -12,7 +12,8 @@ import Finance from './pages/Finance';
 import Settings from './pages/Settings';
 import Chat from './pages/Chat';
 import Technicians from './pages/Technicians';
-import { syncEvolutionMessages } from './lib/evolution';
+import WorkOrderDetail from './pages/WorkOrderDetail';
+// import { syncEvolutionMessages } from './lib/evolution';
 import { useStore } from './lib/store';
 
 function App() {
@@ -22,15 +23,13 @@ function App() {
     // Busca inicial de dados da Nuvem Supabase
     fetchData();
 
-    // Poll Evolution API for new WhatsApp messages every 15 seconds
+    /* 
+    // Poll WhatsApp bot for new messages if needed
     const interval = setInterval(() => {
-      syncEvolutionMessages();
+      // syncMessages(); 
     }, 15000);
-
-    // Initial fetch
-    syncEvolutionMessages();
-
     return () => clearInterval(interval);
+    */
   }, []);
 
   if (isLoading) {
@@ -81,6 +80,7 @@ function App() {
           <Route path="produtos" element={<Products />} />
           <Route path="tecnicos" element={<Technicians />} />
           <Route path="os" element={<WorkOrders />} />
+          <Route path="os/:id" element={<WorkOrderDetail />} />
           <Route path="mensagens" element={<Chat />} />
           <Route path="pdv" element={<POS />} />
           <Route path="garantias" element={<Warranties />} />

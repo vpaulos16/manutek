@@ -13,7 +13,11 @@ import {
     UserCheck
 } from 'lucide-react';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isOpen: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     const menuItems = [
         { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
         { name: 'Mensagens', path: '/mensagens', icon: <MessageCircle size={20} /> },
@@ -27,7 +31,7 @@ const Sidebar: React.FC = () => {
     ];
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <div className="logo">
                     <Wrench className="logo-icon" size={24} />

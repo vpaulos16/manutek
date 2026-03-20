@@ -132,6 +132,10 @@ export interface OSHistoryEvent {
     id: string;
     status: OSStatus;
     timestamp: string;
+    type: 'status' | 'edit' | 'communication';
+    fieldName?: string;
+    oldValue?: any;
+    newValue?: any;
     note?: string;
 }
 

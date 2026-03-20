@@ -1,73 +1,64 @@
-# React + TypeScript + Vite
+# NestJS WhatsApp Bot
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este é um projeto profissional de bot para WhatsApp utilizando **NestJS** e **whatsapp-web.js** com persistência de sessão local (`LocalAuth`).
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js v18+
+- npm ou yarn
 
-## React Compiler
+## Instalação
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Como Executar
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Inicie o projeto em modo de desenvolvimento:
+   ```bash
+   npm run start:dev
+   ```
+2. Observe o terminal. Um **QR Code** será exibido.
+3. Abra o WhatsApp no seu celular, vá em **Aparelhos Conectados** > **Conectar um aparelho** e escaneie o código.
+4. Após o login, a sessão será salva na pasta `.wwebjs_auth/`.
 
-export default defineConfig([
-  globalIgnores(['dist']),
+## Endpoints REST
+
+O projeto inclui uma API básica para interação:
+
+### 1. Verificar Status
+**GET** `http://localhost:3000/whatsapp/status`
+- Retorna se o bot está conectado e pronto.
+
+### 2. Enviar Mensagem
+**POST** `http://localhost:3000/whatsapp/send`
+- **Body:**
+  ```json
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+    "to": "5511999999999",
+    "message": "Olá via API NestJS!"
+  }
+  ```
+
+## Funcionalidades Implementadas
+
+- **LocalAuth:** Sessão persistente (não precisa scanear toda vez).
+- **Auto-resposta:** Responde automaticamente a "oi" ou "olá" com um delay humano (2-5s).
+- **Modular:** Estrutura limpa seguindo os padrões do NestJS.
+- **Segurança:** Puppeteer configurado com `--no-sandbox` para rodar em diversos ambientes.
+- **Logs:** Utiliza o Logger interno do NestJS para monitoramento.
+
+## Dicas Anti-Ban
+
+- O bot inclui um delay randômico nas respostas automáticas.
+- Evite enviar mensagens em massa (spam) para números que não têm você nos contatos.
+
+## Docker (Opcional)
+
+Para rodar via Docker:
+
+```bash
+docker build -t whatsapp-bot-nest .
+docker run -p 3000:3000 whatsapp-bot-nest
 ```

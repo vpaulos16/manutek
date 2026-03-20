@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-    const pendingPickup = workOrders.filter(wo => wo.status === 'ready' && wo.billingStatus === 'active');
+    const pendingPickup = workOrders.filter(wo => wo.status === 'ready');
     const recentOrders = workOrders.slice(-5).reverse();
 
     const getStatusLabel = (status: string) => {

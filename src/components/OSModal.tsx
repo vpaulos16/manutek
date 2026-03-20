@@ -162,7 +162,7 @@ const OSModal: React.FC = () => {
                 totalCost: 0,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                history: [{ id: crypto.randomUUID(), status: 'received', timestamp: new Date().toISOString() }],
+                history: [{ id: crypto.randomUUID(), status: 'received', timestamp: new Date().toISOString(), type: 'status' }],
                 productCondition: {
                     hasScratches: false,
                     wasOpenedBefore: false,
@@ -448,7 +448,7 @@ const OSModal: React.FC = () => {
                         {currentStep < 5 ? (
                             <button type="submit" className="btn btn-primary px-8">Avançar <ArrowRight size={16} /></button>
                         ) : (
-                            <button type="submit" className="btn btn-primary px-10 shadow-lg shadow-blue-500/20" disabled={isSaving || !formData.attendantName}>
+                            <button type="submit" className="btn btn-primary px-10 shadow-lg shadow-blue-500/20" disabled={isSaving}>
                                 {isSaving ? 'Salvando...' : 'GERAR ORDEM DE SERVIÇO'}
                             </button>
                         )}

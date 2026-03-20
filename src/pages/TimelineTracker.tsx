@@ -122,7 +122,7 @@ const TimelineTracker: React.FC = () => {
                         {flowOrder.map((step, index) => {
                             const isCompleted = index <= currentStatusIndex;
                             const isCurrent = index === currentStatusIndex;
-                            const historyEvent = wo.history.find(h => h.status === step.status);
+                            const historyEvent = (wo.history || []).find(h => h.status === step.status);
 
                             return (
                                 <div key={step.status} className="mb-6 relative">

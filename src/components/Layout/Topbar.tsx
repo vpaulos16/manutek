@@ -1,9 +1,16 @@
-import React from 'react';
-import { Search, Bell, ChevronDown } from 'lucide-react';
+import { Search, Bell, ChevronDown, Menu } from 'lucide-react';
 
-const Topbar: React.FC = () => {
+interface TopbarProps {
+    onToggleSidebar: () => void;
+}
+
+const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
     return (
         <header className="topbar">
+            <button className="menu-toggle" onClick={onToggleSidebar}>
+                <Menu size={24} />
+            </button>
+            
             <div className="search-bar">
                 <Search size={18} color="var(--color-text-muted)" />
                 <input type="text" placeholder="Buscar por cliente, OS ou placa..." />
