@@ -42,7 +42,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   private initializeClient() {
     this.logger.log('Initializing WhatsApp client...');
 
-    this.client.on('qr', (qr) => {
+    this.client.on('qr', (qr: string) => {
       this.logger.log('QR CODE RECEIVED. Scan the code below with your WhatsApp:');
       qrcode.generate(qr, { small: true });
     });
@@ -51,7 +51,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('AUTHENTICATED: Session is now persisted locally.');
     });
 
-    this.client.on('auth_failure', (msg) => {
+    this.client.on('auth_failure', (msg: string) => {
       this.logger.error('AUTHENTICATION FAILURE:', msg);
     });
 
@@ -69,19 +69,19 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    this.client.on('disconnected', async (reason) => {
+    this.client.on('disconnected', async (reason: string) => {
       this.logger.warn('WhatsApp client DISCONNECTED:', reason);
       this.isReady = false;
       
       this.logger.log('Attempting to re-initialize client...');
       try {
         await this.client.initialize();
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to re-initialize client', error);
       }
     });
 
-    this.client.initialize().catch((err) => {
+    this.client.initialize().catch((err: Error) => {
       this.logger.error('Error during client initialization:', err);
     });
   }
@@ -94,7 +94,7 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       try {
         await message.reply('Olá! Eu sou o seu bot NestJS desenvolvido com whatsapp-web.js. Como posso ser útil hoje?');
         this.logger.log(`Auto-reply sent to ${message.from}`);
-      } catch (err) {
+      } catch (err: any) {
         this.logger.error(`Failed to send auto-reply to ${message.from}:`, err);
       }
     }, delay);
@@ -111,9 +111,9 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       await this.client.sendMessage(chatId, text);
       this.logger.log(`Manual message sent to ${chatId}: "${text}"`);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(`Failed to send manual message to ${to}:`, err);
-      return { success: false, error: err.message };
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
   }
 

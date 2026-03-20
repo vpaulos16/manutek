@@ -24,5 +24,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/main.ts",
+    "src/app.module.ts",
+    "src/whatsapp/**/*"
+  ]
 }

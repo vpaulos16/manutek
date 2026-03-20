@@ -76,5 +76,5 @@ COPY --from=builder /app/package*.json ./
 EXPOSE 3000
 
 # Start NestJS server
-CMD ["npm", "run", "start:server"]
+CMD ["node", "dist/server/main.js"]
 
