@@ -512,7 +512,7 @@ export const useStore = create<AppState>()((set, get) => ({
     },
     isOSModalOpen: false,
     setOSModalOpen: (isOpen) => set({ isOSModalOpen: isOpen }),
-    whatsappBotUrl: localStorage.getItem('whatsapp_bot_url') || 'http://localhost:3000',
+    whatsappBotUrl: localStorage.getItem('whatsapp_bot_url') || import.meta.env.VITE_WHATSAPP_BOT_URL || 'http://localhost:3000',
     setWhatsappBotConfig: (url) => {
         localStorage.setItem('whatsapp_bot_url', url);
         set({ whatsappBotUrl: url });
