@@ -17,7 +17,9 @@
     "types": ["node"]
   },
   "include": [
-    "src/**/*"
+    "src/main.ts",
+    "src/app.module.ts",
+    "src/whatsapp/**/*"
   ],
   "exclude": ["node_modules", "dist"]
 }
