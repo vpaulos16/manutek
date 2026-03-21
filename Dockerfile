@@ -68,6 +68,7 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libcups2 \
     libdbus-1-3 \
+    libdrm2 \
     libexpat1 \
     libfontconfig1 \
     libgbm1 \
@@ -92,6 +93,7 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     libxss1 \
     libxtst6 \
+    libxkbcommon0 \
     lsb-release \
     wget \
     xdg-utils \
