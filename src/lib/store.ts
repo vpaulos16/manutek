@@ -39,6 +39,13 @@ interface AppState {
     isOSModalOpen: boolean;
     setOSModalOpen: (isOpen: boolean) => void;
 
+    // Auth
+    user: any | null;
+    session: any | null;
+    isAuthLoading: boolean;
+    setUser: (session: any | null) => void;
+    signOut: () => Promise<void>;
+
     // WhatsApp Bot Settings
     whatsappBotUrl: string;
     setWhatsappBotConfig: (url: string) => void;
@@ -79,6 +86,13 @@ export const useStore = create<AppState>()((set, get) => ({
     fetchData: async () => {
         set({ isLoading: true, error: null });
         try {
+            // Check session first
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                set({ isLoading: false });
+                return;
+            }
+
             const [customersRes, productsRes, workOrdersRes, techsRes, partsRes, historyRes, commsRes] = await Promise.all([
                 supabase.from('customers').select('*'),
                 supabase.from('products').select('*'),
@@ -512,6 +526,21 @@ export const useStore = create<AppState>()((set, get) => ({
     },
     isOSModalOpen: false,
     setOSModalOpen: (isOpen) => set({ isOSModalOpen: isOpen }),
+    
+    // Auth State
+    user: null,
+    session: null,
+    isAuthLoading: true,
+    setUser: (session) => set({ 
+        session, 
+        user: session?.user || null,
+        isAuthLoading: false 
+    }),
+    signOut: async () => {
+        await supabase.auth.signOut();
+        set({ session: null, user: null, customers: [], workOrders: [] });
+    },
+
     whatsappBotUrl: localStorage.getItem('whatsapp_bot_url') || import.meta.env.VITE_WHATSAPP_BOT_URL || 'http://localhost:3000',
     setWhatsappBotConfig: (url) => {
         localStorage.setItem('whatsapp_bot_url', url);

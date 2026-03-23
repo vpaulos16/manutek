@@ -13,31 +13,41 @@ import Settings from './pages/Settings';
 import Chat from './pages/Chat';
 import Technicians from './pages/Technicians';
 import WorkOrderDetail from './pages/WorkOrderDetail';
+import Login from './pages/Login';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 // import { syncEvolutionMessages } from './lib/evolution';
 import { useStore } from './lib/store';
+import { supabase } from './lib/supabase';
 
 function App() {
-  const { fetchData, isLoading } = useStore();
+  const { fetchData, setUser, isLoading, isAuthLoading } = useStore();
 
   useEffect(() => {
-    // Busca inicial de dados da Nuvem Supabase
-    fetchData();
+    // 1. Verificar sessão inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session);
+      if (session) fetchData();
+    });
 
-    /* 
-    // Poll WhatsApp bot for new messages if needed
-    const interval = setInterval(() => {
-      // syncMessages(); 
-    }, 15000);
-    return () => clearInterval(interval);
-    */
+    // 2. Ouvir mudanças na autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session);
+      if (session) {
+        fetchData();
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (isLoading) {
+  if (isAuthLoading || (isLoading && useStore.getState().session)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-main font-semibold">Conectando ao Banco de Dados...</p>
+          <p className="text-main font-semibold">
+            {isAuthLoading ? 'Verificando sessão...' : 'Carregando dados...'}
+          </p>
         </div>
       </div>
     );
@@ -69,23 +79,26 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Route */}
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
         <Route path="/rastreio/:id" element={<TimelineTracker />} />
 
-        {/* Admin Routes */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="clientes" element={<Customers />} />
-          <Route path="produtos" element={<Products />} />
-          <Route path="tecnicos" element={<Technicians />} />
-          <Route path="os" element={<WorkOrders />} />
-          <Route path="os/:id" element={<WorkOrderDetail />} />
-          <Route path="mensagens" element={<Chat />} />
-          <Route path="pdv" element={<POS />} />
-          <Route path="garantias" element={<Warranties />} />
-          <Route path="financeiro" element={<Finance />} />
-          <Route path="configuracoes" element={<Settings />} />
+        {/* Protected Admin Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="clientes" element={<Customers />} />
+            <Route path="produtos" element={<Products />} />
+            <Route path="tecnicos" element={<Technicians />} />
+            <Route path="os" element={<WorkOrders />} />
+            <Route path="os/:id" element={<WorkOrderDetail />} />
+            <Route path="mensagens" element={<Chat />} />
+            <Route path="pdv" element={<POS />} />
+            <Route path="garantias" element={<Warranties />} />
+            <Route path="financeiro" element={<Finance />} />
+            <Route path="configuracoes" element={<Settings />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

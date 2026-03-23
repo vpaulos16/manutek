@@ -1,10 +1,19 @@
-import { Search, Bell, ChevronDown, Menu } from 'lucide-react';
+import { Search, Bell, Menu, LogOut } from 'lucide-react';
+import { useStore } from '../../lib/store';
 
 interface TopbarProps {
     onToggleSidebar: () => void;
 }
 
 const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
+    const { user, signOut } = useStore();
+
+    const handleLogout = async () => {
+        if (confirm('Deseja realmente sair?')) {
+            await signOut();
+        }
+    };
+
     return (
         <header className="topbar">
             <button className="menu-toggle" onClick={onToggleSidebar}>
@@ -22,13 +31,15 @@ const Topbar: React.FC<TopbarProps> = ({ onToggleSidebar }) => {
                     <span className="notification-badge"></span>
                 </button>
 
-                <div className="user-profile">
-                    <div className="avatar">A</div>
-                    <div className="user-info">
-                        <span className="user-name">Admin</span>
-                        <span className="user-role">Gerente</span>
+                <div className="user-profile group relative cursor-pointer" onClick={handleLogout}>
+                    <div className="avatar bg-primary text-white">
+                        {user?.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <ChevronDown size={16} color="var(--color-text-muted)" />
+                    <div className="user-info">
+                        <span className="user-name">{user?.email?.split('@')[0] || 'Usuário'}</span>
+                        <span className="user-role">Administrador</span>
+                    </div>
+                    <LogOut size={16} className="text-slate-400 group-hover:text-danger transition-colors ml-2" />
                 </div>
             </div>
         </header>
