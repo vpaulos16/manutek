@@ -1,0 +1,240 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f7fe;
+  padding: 1rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.login-card {
+  max-width: 1000px;
+  width: 100%;
+  background: white;
+  border-radius: 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: row;
+  min-height: 600px;
+  overflow: hidden;
+  border: 1px solid #fff;
+}
+
+/* Lado Azul (Bem-vindo) */
+.login-sidebar {
+  width: 40%;
+  background-color: #1a4dff; /* Azul vibrante */
+  color: white;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: order 0.5s ease-in-out;
+}
+
+.login-sidebar-logo {
+  margin-bottom: 2rem;
+  color: #a3b9ff;
+}
+
+.login-sidebar h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+}
+
+.login-sidebar p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 2.5rem;
+  line-height: 1.5;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+  padding: 0.75rem 3rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle:hover {
+  background: white;
+  color: #1a4dff;
+}
+
+/* Lado Branco (Formulário) */
+.login-form-side {
+  width: 60%;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-form-container {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.login-header h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.login-header p {
+  color: #999;
+  font-weight: 500;
+}
+
+.error-msg, .success-msg {
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-msg {
+  background-color: #fff1f1;
+  color: #e53e3e;
+  border: 1px solid #fed7d7;
+}
+
+.success-msg {
+  background-color: #f0fff4;
+  color: #38a169;
+  border: 1px solid #c6f6d5;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: #999;
+}
+
+.login-input {
+  width: 100%;
+  padding: 1.2rem 1rem 1.2rem 3.5rem;
+  background-color: #f0f2f5;
+  border: none;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.login-input::placeholder {
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.login-input:focus {
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(26, 77, 255, 0.1);
+}
+
+.forgot-password {
+  display: block;
+  text-align: right;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-submit {
+  width: 100%;
+  background-color: black;
+  color: white;
+  padding: 1.2rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: 2rem;
+  cursor: pointer;
+  transition: transform 0.1s active, background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-submit:hover {
+  background-color: #1a1a1a;
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.login-footer p {
+  font-size: 0.65rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column;
+    max-width: 500px;
+  }
+  .login-sidebar, .login-form-side {
+    width: 100%;
+  }
+  .login-sidebar {
+    padding: 2rem;
+  }
+  .login-form-side {
+    padding: 2.5rem;
+  }
+}

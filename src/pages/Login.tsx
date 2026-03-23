@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Lock, Mail, AlertCircle, Loader2, UserCheck } from 'lucide-react';
+import './Login.css';
 
 const Login: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ const Login: React.FC = () => {
                     }
                 });
                 if (signUpError) throw signUpError;
-                setSuccess('Conta criada! Verifique seu email para confirmar.');
+                setSuccess('Conta criada com sucesso! Verifique seu email.');
                 setIsRegistering(false);
             } else {
                 const { error: loginError } = await supabase.auth.signInWithPassword({
@@ -47,77 +48,76 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F4F7FE] p-4 font-sans line-height-normal">
-            <div className="max-w-[1000px] w-full bg-white rounded-[24px] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in border border-white">
+        <div className="login-container">
+            <div className="login-card">
                 
-                {/* Lado Azul (Inspirado no estilo enviado) */}
-                <div className={`w-full md:w-[40%] bg-blue-600 text-white p-12 flex flex-col items-center justify-center text-center transition-all duration-500 ease-in-out ${isRegistering ? 'md:order-last' : 'md:order-first'}`}>
-                    <div className="mb-8">
-                        <Lock size={48} className="text-blue-200" />
+                {/* Lado Azul (Bem-vindo) */}
+                <div className="login-sidebar" style={{ order: isRegistering ? 2 : 1 }}>
+                    <div className="login-sidebar-logo">
+                        <Lock size={48} />
                     </div>
-                    <h2 className="text-3xl font-extrabold mb-4 leading-tight">
+                    <h2>
                         {isRegistering ? 'Bem-Vindo de volta' : 'Olá, Amigo!'}
                     </h2>
-                    <p className="text-blue-100 mb-10 text-lg opacity-90">
+                    <p>
                         {isRegistering 
                             ? 'Acesse sua conta agora mesmo para gerenciar suas ordens.' 
                             : 'Crie sua conta agora mesmo e comece a organizar sua assistência técnica.'
                         }
                     </p>
                     <button 
+                        type="button"
                         onClick={() => {
                             setIsRegistering(!isRegistering);
                             setError(null);
                             setSuccess(null);
                         }}
-                        className="px-12 py-3 border-2 border-white rounded-full font-bold text-lg hover:bg-white hover:text-blue-600 transition-all active:scale-95 tracking-wide uppercase"
+                        className="btn-toggle"
                     >
                         {isRegistering ? 'Entrar' : 'Cadastrar'}
                     </button>
                     
-                    <div className="mt-12 flex items-center gap-2 opacity-50">
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                        <span className="text-xs font-bold tracking-[0.2em] uppercase">Manutek Pro</span>
+                    <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.5 }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }}></div>
+                        <span style={{ fontSize: '10px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase' }}>Manutek Pro</span>
                     </div>
                 </div>
 
                 {/* Lado Branco (Formulário) */}
-                <div className="w-full md:w-[60%] p-10 md:p-16 flex flex-col justify-center">
-                    <div className="max-w-[400px] mx-auto w-full">
-                        <div className="text-center mb-10">
-                            <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight">
+                <div className="login-form-side" style={{ order: isRegistering ? 1 : 2 }}>
+                    <div className="login-form-container">
+                        <div className="login-header">
+                            <h1>
                                 {isRegistering ? 'Crie sua conta' : 'Acesse o Painel'}
                             </h1>
-                            <p className="text-slate-400 font-medium">
+                            <p>
                                 {isRegistering ? 'Cadastre seus dados abaixo' : 'Entre com suas credenciais'}
                             </p>
                         </div>
 
                         {error && (
-                            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 text-red-600 animate-shake">
-                                <AlertCircle size={20} className="mt-0.5 shrink-0" />
-                                <p className="text-sm font-semibold">{error}</p>
+                            <div className="error-msg">
+                                <AlertCircle size={20} />
+                                <span>{error}</span>
                             </div>
                         )}
 
                         {success && (
-                            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-3 text-emerald-600">
-                                <AlertCircle size={20} className="mt-0.5 shrink-0" />
-                                <p className="text-sm font-semibold">{success}</p>
+                            <div className="success-msg">
+                                <AlertCircle size={20} />
+                                <span>{success}</span>
                             </div>
                         )}
 
                         <form onSubmit={handleAuth} className="space-y-5">
                             {isRegistering && (
-                                <div className="space-y-1">
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                                            <UserCheck size={20} />
-                                        </div>
+                                <div className="form-group">
+                                    <div className="input-wrapper">
+                                        <UserCheck size={20} className="input-icon" />
                                         <input
                                             type="text"
                                             required={isRegistering}
-                                            className="w-full pl-12 pr-4 py-4 bg-slate-100 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 focus:bg-white outline-none transition-all placeholder:text-slate-500 font-bold text-slate-700 uppercase tracking-wider text-sm"
+                                            className="login-input"
                                             placeholder="NOME"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
@@ -126,15 +126,13 @@ const Login: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="space-y-1">
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                                        <Mail size={20} />
-                                    </div>
+                            <div className="form-group">
+                                <div className="input-wrapper">
+                                    <Mail size={20} className="input-icon" />
                                     <input
                                         type="email"
                                         required
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-100 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 focus:bg-white outline-none transition-all placeholder:text-slate-500 font-bold text-slate-700 uppercase tracking-wider text-sm"
+                                        className="login-input"
                                         placeholder="EMAIL"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -142,15 +140,13 @@ const Login: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                                        <Lock size={20} />
-                                    </div>
+                            <div className="form-group">
+                                <div className="input-wrapper">
+                                    <Lock size={20} className="input-icon" />
                                     <input
                                         type="password"
                                         required
-                                        className="w-full pl-12 pr-4 py-4 bg-slate-100 border-none rounded-2xl focus:ring-4 focus:ring-blue-100 focus:bg-white outline-none transition-all placeholder:text-slate-500 font-bold text-slate-700 uppercase tracking-wider text-sm"
+                                        className="login-input"
                                         placeholder="SENHA"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -159,21 +155,19 @@ const Login: React.FC = () => {
                             </div>
 
                             {!isRegistering && (
-                                <div className="text-right">
-                                    <button type="button" className="text-xs font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
-                                        Esqueceu a senha?
-                                    </button>
-                                </div>
+                                <span className="forgot-password">
+                                    Esqueceu a senha?
+                                </span>
                             )}
 
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-4 bg-black hover:bg-slate-900 text-white rounded-full font-black text-sm tracking-widest uppercase shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-4"
+                                className="btn-submit"
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 size={20} className="animate-spin" />
+                                        <Loader2 size={18} className="animate-spin" />
                                         <span>AGUARDE...</span>
                                     </>
                                 ) : (
