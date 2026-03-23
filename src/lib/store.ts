@@ -327,6 +327,25 @@ export const useStore = create<AppState>()((set, get) => ({
                         billingUpdates = { billingStatus: 'finished' };
                     }
 
+                    if (status === 'delivered') {
+                        const customer = state.customers.find(c => c.id === wo.customerId);
+                        if (customer && customer.whatsapp) {
+                            const message = `Olá *${customer.name}*! Sua OS *#${wo.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊`;
+                            sendWhatsAppMessage(customer.whatsapp, message);
+
+                            state.communications.push({
+                                id: crypto.randomUUID(),
+                                workOrderId: id,
+                                customerPhone: customer.whatsapp,
+                                message,
+                                status: 'sent',
+                                direction: 'outbound',
+                                timestamp: now,
+                                type: 'general'
+                            });
+                        }
+                    }
+
                     return {
                         ...wo,
                         ...billingUpdates,
@@ -400,20 +419,41 @@ export const useStore = create<AppState>()((set, get) => ({
             await supabase.from('work_order_history').insert(historyEntries);
         }
 
-        set((state) => ({
-            workOrders: state.workOrders.map((wo) =>
-                wo.id === id ? { 
-                    ...wo, 
-                    ...updates, 
-                    updatedAt: now,
-                    history: [...wo.history, ...historyEntries.map(h => ({
+        set((state) => {
+            if (updates.status === 'delivered') {
+                const customer = state.customers.find(c => c.id === oldWO.customerId);
+                if (customer && customer.whatsapp) {
+                    const message = `Olá *${customer.name}*! Sua OS *#${oldWO.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊`;
+                    sendWhatsAppMessage(customer.whatsapp, message);
+
+                    state.communications.push({
                         id: crypto.randomUUID(),
-                        ...h,
-                        timestamp: now
-                    }))]
-                } : wo
-            )
-        }));
+                        workOrderId: id,
+                        customerPhone: customer.whatsapp,
+                        message,
+                        status: 'sent',
+                        direction: 'outbound',
+                        timestamp: now,
+                        type: 'general'
+                    });
+                }
+            }
+
+            return {
+                workOrders: state.workOrders.map((wo) =>
+                    wo.id === id ? { 
+                        ...wo, 
+                        ...updates, 
+                        updatedAt: now,
+                        history: [...wo.history, ...historyEntries.map(h => ({
+                            id: crypto.randomUUID(),
+                            ...h,
+                            timestamp: now
+                        }))]
+                    } : wo
+                )
+            };
+        });
     },
     updateWorkOrderTotalCost: async (id, totalCost) => {
         await supabase.from('work_orders').update({ total_cost: totalCost }).eq('id', id);
@@ -601,7 +641,8 @@ export const useStore = create<AppState>()((set, get) => ({
                         message = message.replace('{dias_parados}', daysPending.toString());
 
                         const baseUrl = window.location.origin;
-                        message = message.replace('{link_rastreio}', `${baseUrl}/rastreio/${wo.number}`);
+                        const trackingLink = `${baseUrl}/rastreio/${wo.number}`;
+                        message = message.replace('{link_rastreio}', `\n\nLink de rastreio:\n${trackingLink}\n\n`);
 
                         sendWhatsAppMessage(customer.whatsapp, message);
 
