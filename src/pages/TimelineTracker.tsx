@@ -118,6 +118,54 @@ const TimelineTracker: React.FC = () => {
                         <p className="text-small text-muted mt-1">Defeito relatado: {wo.reportedDefect}</p>
                     </div>
 
+                    {['analyzing', 'awaiting_approval', 'approved', 'in_maintenance', 'completed', 'ready', 'delivered'].includes(wo.status) && (
+                        <div className="mb-6 p-4 rounded-md border border-slate-200 bg-white">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-3 flex items-center gap-2">
+                                <Wrench size={16} className="text-primary" />
+                                Detalhes do Orçamento
+                            </h3>
+                            
+                            {wo.technicalDiagnostic && (
+                                <div className="mb-4">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Diagnóstico Técnico</p>
+                                    <p className="text-sm text-slate-700 mt-1 italic">{wo.technicalDiagnostic}</p>
+                                </div>
+                            )}
+
+                            {wo.items && wo.items.length > 0 && (
+                                <div className="mb-4">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Peças e Serviços</p>
+                                    <div className="space-y-2">
+                                        {wo.items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between text-sm py-1 border-b border-dotted border-slate-100 last:border-0">
+                                                <span className="text-slate-600">{item.name} (x{item.quantity})</span>
+                                                <span className="font-medium text-slate-900">
+                                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.price * item.quantity)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {wo.laborCost > 0 && (
+                                <div className="flex justify-between text-sm py-2 border-t border-slate-100 mt-2">
+                                    <span className="text-slate-600 font-medium">Mão de Obra</span>
+                                    <span className="font-medium text-slate-900">
+                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wo.laborCost)}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className="flex justify-between text-main font-bold py-2 border-t border-slate-200 mt-2 bg-slate-50 px-2 rounded">
+                                <span>VALOR TOTAL</span>
+                                <span>
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wo.totalCost)}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="timeline relative pl-4 border-l-2 ml-4 mb-6" style={{ borderColor: 'var(--color-border)' }}>
                         {flowOrder.map((step, index) => {
                             const isCompleted = index <= currentStatusIndex;

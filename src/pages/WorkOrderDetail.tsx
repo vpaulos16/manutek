@@ -511,15 +511,23 @@ Após ${billingSettings.gracePeriodDays} dias será aplicada taxa de armazenamen
                                             onChange={e => setLaborInput(e.target.value)}
                                         />
                                         <button 
-                                            className="btn btn-primary"
-                                            style={{ height: '2.5rem', padding: '0 1rem', fontSize: '0.75rem', fontWeight: 700 }}
+                                            className="btn btn-primary shadow-md hover:scale-105 transition-transform"
+                                            style={{ 
+                                                height: '2.5rem', 
+                                                padding: '0 1.25rem', 
+                                                fontSize: '0.65rem', 
+                                                fontWeight: 800,
+                                                letterSpacing: '0.05em',
+                                                backgroundColor: '#2563eb',
+                                                borderRadius: '8px'
+                                            }}
                                             onClick={() => {
                                                 const labor = parseMoneyInput(laborInput);
                                                 const partsTotal = wo.items?.reduce((acc, i) => acc + (i.price * i.quantity), 0) || 0;
                                                 updateWorkOrder(wo.id, { laborCost: labor, totalCost: partsTotal + labor });
                                             }}
                                         >
-                                            SALVAR
+                                            OK / ADICIONAR
                                         </button>
                                     </div>
                                 </div>
