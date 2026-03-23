@@ -63,6 +63,13 @@ const WorkOrderDetail: React.FC = () => {
     const [localDiagnosis, setLocalDiagnosis] = useState(wo?.technicalDiagnostic || '');
     const [laborInput, setLaborInput] = useState(wo?.laborCost?.toString() || '');
     
+    // Sincroniza o input local com o valor da OS se ele mudar externamente
+    React.useEffect(() => {
+        if (wo?.laborCost !== undefined) {
+            setLaborInput(wo.laborCost.toString());
+        }
+    }, [wo?.laborCost]);
+    
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editData, setEditData] = useState({
         customerName: '',
@@ -502,12 +509,18 @@ Após ${billingSettings.gracePeriodDays} dias será aplicada taxa de armazenamen
                                             placeholder="0,00"
                                             value={laborInput}
                                             onChange={e => setLaborInput(e.target.value)}
-                                            onBlur={() => {
+                                        />
+                                        <button 
+                                            className="btn btn-primary"
+                                            style={{ height: '2.5rem', padding: '0 1rem', fontSize: '0.75rem', fontWeight: 700 }}
+                                            onClick={() => {
                                                 const labor = parseMoneyInput(laborInput);
                                                 const partsTotal = wo.items?.reduce((acc, i) => acc + (i.price * i.quantity), 0) || 0;
                                                 updateWorkOrder(wo.id, { laborCost: labor, totalCost: partsTotal + labor });
                                             }}
-                                        />
+                                        >
+                                            SALVAR
+                                        </button>
                                     </div>
                                 </div>
                             </div>

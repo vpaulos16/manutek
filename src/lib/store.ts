@@ -327,30 +327,11 @@ export const useStore = create<AppState>()((set, get) => ({
                         billingUpdates = { billingStatus: 'finished' };
                     }
 
-                    if (status === 'delivered') {
-                        const customer = state.customers.find(c => c.id === wo.customerId);
-                        if (customer && customer.whatsapp) {
-                            const message = `Olá *${customer.name}*! Sua OS *#${wo.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊`;
-                            sendWhatsAppMessage(customer.whatsapp, message);
-
-                            state.communications.push({
-                                id: crypto.randomUUID(),
-                                workOrderId: id,
-                                customerPhone: customer.whatsapp,
-                                message,
-                                status: 'sent',
-                                direction: 'outbound',
-                                timestamp: now,
-                                type: 'general'
-                            });
-                        }
-                    }
-
                     return {
                         ...wo,
                         ...billingUpdates,
                         status,
-                        statusEntryDate: now, // Atualiza a trava
+                        statusEntryDate: now,
                         updatedAt: now,
                         history: [...wo.history, { 
                             id: crypto.randomUUID(), 
@@ -360,8 +341,32 @@ export const useStore = create<AppState>()((set, get) => ({
                         }]
                     };
                 })
-            }
+            };
         });
+
+        // Efeito Colateral: Mensagem de Agradecimento (Fora do set)
+        if (status === 'delivered') {
+            const state = get();
+            const wo = state.workOrders.find(w => w.id === id);
+            const customer = state.customers.find(c => c.id === wo?.customerId);
+            if (customer && customer.whatsapp && wo) {
+                const message = `Olá *${customer.name}*! Sua OS *#${wo.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊\n\n_Caso o link de rastreio não apareça azul, salve nosso contato ou nos responda com um "Ok"!_`;
+                sendWhatsAppMessage(customer.whatsapp, message);
+
+                set((s) => ({
+                    communications: [...s.communications, {
+                        id: crypto.randomUUID(),
+                        workOrderId: id,
+                        customerPhone: customer.whatsapp,
+                        message,
+                        status: 'sent',
+                        direction: 'outbound',
+                        timestamp: now,
+                        type: 'general'
+                    }]
+                }));
+            }
+        }
     },
     // NOVO: Método genérico para atualizar OS com histórico
     updateWorkOrder: async (id, updates) => {
@@ -372,7 +377,6 @@ export const useStore = create<AppState>()((set, get) => ({
         const now = new Date().toISOString();
         const historyEntries: any[] = [];
 
-        // Compara campos alterados para o histórico
         Object.keys(updates).forEach(key => {
             const oldValue = (oldWO as any)[key];
             const newValue = (updates as any)[key];
@@ -386,7 +390,7 @@ export const useStore = create<AppState>()((set, get) => ({
                     field_name: key,
                     old_value: oldValue,
                     new_value: newValue,
-                    user_name: 'Sistema' // Pode ser expandido futuramente
+                    user_name: 'Sistema'
                 });
             }
         });
@@ -406,10 +410,7 @@ export const useStore = create<AppState>()((set, get) => ({
         if (updates.lastFeeCalculationDate !== undefined) mappedUpdates.last_fee_calculation_date = updates.lastFeeCalculationDate;
         if (updates.items !== undefined) mappedUpdates.items = updates.items;
 
-        const { error } = await supabase.from('work_orders')
-            .update(mappedUpdates)
-            .eq('id', id);
-
+        const { error } = await supabase.from('work_orders').update(mappedUpdates).eq('id', id);
         if (error) {
             console.error('Supabase update work_orders failed:', error);
             throw error;
@@ -419,14 +420,32 @@ export const useStore = create<AppState>()((set, get) => ({
             await supabase.from('work_order_history').insert(historyEntries);
         }
 
-        set((state) => {
-            if (updates.status === 'delivered') {
-                const customer = state.customers.find(c => c.id === oldWO.customerId);
-                if (customer && customer.whatsapp) {
-                    const message = `Olá *${customer.name}*! Sua OS *#${oldWO.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊`;
-                    sendWhatsAppMessage(customer.whatsapp, message);
+        set((state) => ({
+            workOrders: state.workOrders.map((wo) =>
+                wo.id === id ? { 
+                    ...wo, 
+                    ...updates, 
+                    updatedAt: now,
+                    history: [...wo.history, ...historyEntries.map(h => ({
+                        id: crypto.randomUUID(),
+                        ...h,
+                        timestamp: now
+                    }))]
+                } : wo
+            )
+        }));
 
-                    state.communications.push({
+        // Efeito Colateral: Mensagem de Agradecimento (Fora do set)
+        if (updates.status === 'delivered') {
+            const state = get();
+            const wo = state.workOrders.find(w => w.id === id);
+            const customer = state.customers.find(c => c.id === wo?.customerId);
+            if (customer && customer.whatsapp && wo) {
+                const message = `Olá *${customer.name}*! Sua OS *#${wo.number}* foi entregue. Agradecemos a preferência e confiança em nosso trabalho! 😊\n\n_Caso o link de rastreio não apareça azul, salve nosso contato ou nos responda com um "Ok"!_`;
+                sendWhatsAppMessage(customer.whatsapp, message);
+
+                set((s) => ({
+                    communications: [...s.communications, {
                         id: crypto.randomUUID(),
                         workOrderId: id,
                         customerPhone: customer.whatsapp,
@@ -435,25 +454,10 @@ export const useStore = create<AppState>()((set, get) => ({
                         direction: 'outbound',
                         timestamp: now,
                         type: 'general'
-                    });
-                }
+                    }]
+                }));
             }
-
-            return {
-                workOrders: state.workOrders.map((wo) =>
-                    wo.id === id ? { 
-                        ...wo, 
-                        ...updates, 
-                        updatedAt: now,
-                        history: [...wo.history, ...historyEntries.map(h => ({
-                            id: crypto.randomUUID(),
-                            ...h,
-                            timestamp: now
-                        }))]
-                    } : wo
-                )
-            };
-        });
+        }
     },
     updateWorkOrderTotalCost: async (id, totalCost) => {
         await supabase.from('work_orders').update({ total_cost: totalCost }).eq('id', id);
