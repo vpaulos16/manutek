@@ -148,14 +148,12 @@ const TimelineTracker: React.FC = () => {
                                 </div>
                             )}
 
-                            {wo.laborCost > 0 && (
-                                <div className="flex justify-between text-sm py-2 border-t border-slate-100 mt-2">
-                                    <span className="text-slate-600 font-medium">Mão de Obra</span>
-                                    <span className="font-medium text-slate-900">
-                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wo.laborCost)}
-                                    </span>
-                                </div>
-                            )}
+                            <div className="flex justify-between text-sm py-2 border-t border-slate-100 mt-2">
+                                <span className="text-slate-600 font-medium">Mão de Obra</span>
+                                <span className="font-medium text-slate-900">
+                                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(wo.laborCost || 0)}
+                                </span>
+                            </div>
 
                             <div className="flex justify-between text-main font-bold py-2 border-t border-slate-200 mt-2 bg-slate-50 px-2 rounded">
                                 <span>VALOR TOTAL</span>
