@@ -38,6 +38,9 @@ interface AppState {
     receiveWhatsAppMessage: (phone: string, message: string) => void;
     isOSModalOpen: boolean;
     setOSModalOpen: (isOpen: boolean) => void;
+    
+    // Public fetch for tracking
+    fetchPublicWorkOrder: (number: string) => Promise<void>;
 
     // Auth
     user: any | null;
@@ -675,6 +678,90 @@ export const useStore = create<AppState>()((set, get) => ({
 
             return { ...state, workOrders: updatedOs };
         });
+    },
+
+    fetchPublicWorkOrder: async (number: string) => {
+        set({ isLoading: true, error: null });
+        try {
+            // 1. Fetch OS by number
+            const { data: woData, error: woError } = await supabase
+                .from('work_orders')
+                .select('*')
+                .eq('number', parseInt(number))
+                .single();
+
+            if (woError) throw woError;
+
+            // 2. Fetch Customer and Product
+            const [customerRes, productRes, historyRes] = await Promise.all([
+                supabase.from('customers').select('*').eq('id', woData.customer_id).single(),
+                supabase.from('products').select('*').eq('id', woData.product_id).single(),
+                supabase.from('work_order_history').select('*').eq('work_order_id', woData.id)
+            ]);
+
+            if (customerRes.error) throw customerRes.error;
+            if (productRes.error) throw productRes.error;
+
+            const c = customerRes.data;
+            const p = productRes.data;
+            
+            const customer: Customer = {
+                id: c.id,
+                name: c.name,
+                phone: c.phone,
+                whatsapp: c.whatsapp,
+                document: c.document,
+                address: c.address,
+                createdAt: c.created_at
+            };
+
+            const product: Product = {
+                id: p.id,
+                customerId: p.customer_id,
+                brand: p.brand,
+                model: p.model,
+                category: p.category,
+                serialNumber: p.serial_number
+            };
+
+            const wo: WorkOrder = {
+                id: woData.id,
+                number: woData.number,
+                customerId: woData.customer_id,
+                productId: woData.product_id,
+                technicianId: woData.technician_id,
+                status: woData.status as OSStatus,
+                statusEntryDate: woData.status_entry_date || woData.created_at,
+                reportedDefect: woData.reported_defect,
+                technicalDiagnostic: woData.technical_diagnostic,
+                items: woData.items || [],
+                laborCost: parseFloat(woData.labor_cost) || 0,
+                totalCost: parseFloat(woData.total_cost) || 0,
+                isUnderWarranty: woData.is_under_warranty,
+                hasInvoice: woData.has_invoice,
+                productCondition: woData.product_condition,
+                accessories: woData.accessories,
+                termsAccepted: woData.terms_accepted,
+                createdAt: woData.created_at,
+                updatedAt: woData.updated_at,
+                history: (historyRes.data || []).map(h => ({
+                    id: h.id,
+                    status: h.status as OSStatus,
+                    timestamp: h.timestamp,
+                    type: h.type || 'status'
+                }))
+            };
+
+            set((state) => ({
+                workOrders: [...state.workOrders.filter(w => w.id !== wo.id), wo],
+                customers: [...state.customers.filter(c => c.id !== customer.id), customer],
+                products: [...state.products.filter(pr => pr.id !== product.id), product],
+                isLoading: false
+            }));
+        } catch (error: any) {
+            console.error('Erro na busca pública:', error);
+            set({ error: error.message, isLoading: false });
+        }
     }
 }));
 

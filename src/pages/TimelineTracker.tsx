@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { CheckCircle2, Circle, Wrench, Watch, XCircle } from 'lucide-react';
@@ -17,13 +17,19 @@ const flowOrder: { status: OSStatus, label: string, desc: string }[] = [
 
 const TimelineTracker: React.FC = () => {
     const { id } = useParams();
-    const { workOrders, customers, products, updateWorkOrderStatus, logCommunication } = useStore();
+    const { workOrders, customers, products, updateWorkOrderStatus, logCommunication, fetchPublicWorkOrder, isLoading, error } = useStore();
     const [approvedMsg, setApprovedMsg] = useState(false);
     const [rejectedMsg, setRejectedMsg] = useState(false);
 
     const wo = workOrders.find(w => w.number.toString() === id);
     const customer = wo ? customers.find(c => c.id === wo.customerId) : null;
     const product = wo ? products.find(p => p.id === wo.productId) : null;
+
+    useEffect(() => {
+        if (id && !wo) {
+            fetchPublicWorkOrder(id);
+        }
+    }, [id, wo, fetchPublicWorkOrder]);
 
     const handleApprove = () => {
         if (wo) {
@@ -65,12 +71,37 @@ const TimelineTracker: React.FC = () => {
         }
     };
 
+    if (isLoading && !wo) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-slate-600 font-medium italic">Consultando sua Ordem de Serviço...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!wo) {
         return (
-            <div className="app-container justify-center items-center bg-gray-50 flex-col" style={{ height: '100vh', width: '100vw' }}>
-                <Wrench size={48} className="text-muted mb-4" />
-                <h1 className="text-h2">OS Não encontrada</h1>
-                <p className="text-subtitle">Verifique o link enviado pelo WhatsApp.</p>
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-slate-100">
+                    <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Wrench size={40} />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">OS não encontrada</h2>
+                    <p className="text-slate-600 mb-8">
+                        Não encontramos a Ordem de Serviço <strong>#{id}</strong>.<br/>
+                        Verifique se o link está correto ou entre em contato conosco.
+                    </p>
+                    {error && (
+                        <div className="mb-6 p-3 bg-red-50 text-red-700 text-[10px] rounded font-mono break-words">
+                            Erro: {error}
+                        </div>
+                    )}
+                    <button onClick={() => window.location.reload()} className="btn btn-primary w-full py-3 h-auto">Tentar novamente</button>
+                    <p className="text-xs text-slate-400 mt-4">Link acessado: /rastreio/{id}</p>
+                </div>
             </div>
         );
     }
